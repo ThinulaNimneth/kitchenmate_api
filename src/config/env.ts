@@ -1,16 +1,14 @@
 import dotenv from "dotenv"
 
-dotenv.config({quiet:true})
-
+dotenv.config({ quiet: true })
 
 const required = (key: string): string => {
-    const value = process.env[key]
-    if (!value){
-        throw new Error(`environment variable missing: ${key}`)
-    }
-    return value
+  const value = process.env[key]
+  if (!value) {
+    throw new Error(`environment variable missing: ${key}`)
+  }
+  return value
 }
-
 
 export const env = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
@@ -26,12 +24,15 @@ export const env = {
     .filter(Boolean),
   EXPIRING_SOON_DAYS: Number(process.env.EXPIRING_SOON_DAYS ?? 3),
 
-
   SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL ?? "admin@kitchenmate.com",
-  SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD ?? "Admin@12345"
+  SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD ?? "Admin@12345",
+
+  // ai model
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY ?? "",
+  GEMINI_MODEL: process.env.GEMINI_MODEL ?? "gemini-flash-latest",
+  GEMINI_FALLBACK_MODEL: process.env.GEMINI_FALLBACK_MODEL ?? "gemini-2.5-flash"
 }
 
-//add gem model..
 
 
 export const isProduction = env.NODE_ENV === "production"
