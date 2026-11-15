@@ -8,12 +8,9 @@ import { generateRecipeSchema, saveRecipeSchema } from "../validators/recipe.val
 const router = Router()
 router.use(authenticate)
 
-
 router.post("/generate", aiLimiter, validateBody(generateRecipeSchema), generate)
 router.get("/", listRecipes)
 router.post("/", validateBody(saveRecipeSchema), saveRecipe)
 router.delete("/:id", deleteRecipe)
-
-
 
 export default router

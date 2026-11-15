@@ -1,12 +1,10 @@
 import { Document, model, Schema, Types } from "mongoose"
 
-
 export enum ItemStatus {
-  ACTIVE = "ACTIVE",
+  ACTIVE = "ACTIVE", 
   CONSUMED = "CONSUMED", 
-  WASTED = "WASTED" 
+  WASTED = "WASTED"
 }
-
 
 export const UNITS = [
   "pcs",
@@ -22,7 +20,6 @@ export const UNITS = [
   "dozen"
 ] as const
 
-
 export interface IPantryItem extends Document {
   user: Types.ObjectId
   name: string
@@ -37,8 +34,6 @@ export interface IPantryItem extends Document {
   createdAt: Date
   updatedAt: Date
 }
-
-
 
 const pantryItemSchema = new Schema<IPantryItem>(
   {
@@ -56,9 +51,7 @@ const pantryItemSchema = new Schema<IPantryItem>(
   { timestamps: true }
 )
 
-
-
-// active items by expiry
+//itms by ex date
 pantryItemSchema.index({ user: 1, status: 1, expirationDate: 1 })
 pantryItemSchema.index({ user: 1, category: 1 })
 

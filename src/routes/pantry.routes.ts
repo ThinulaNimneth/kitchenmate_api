@@ -20,7 +20,7 @@ const router = Router()
 router.use(authenticate)
 
 router.get("/", listItems)
-router.get("/expiring", listExpiring)
+router.get("/expiring", listExpiring) //define before route
 router.post("/", validateBody(createPantryItemSchema), createItem)
 router.get("/:id", getItem)
 router.put("/:id", validateBody(updatePantryItemSchema), updateItem)

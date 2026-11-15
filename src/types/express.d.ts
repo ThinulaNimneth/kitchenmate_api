@@ -1,16 +1,14 @@
-import type { UserRole } from "../models/user.model";
+import type { UserRole } from "../models/user.model"
 
-
-export interface AuthContext{
-    id: string
-    roles: UserRole[]
+export interface AuthContext {
+  id: string
+  roles: UserRole[]
 }
 
-
-declare global{
-    namespace Express{
-        interface Request {
-            auth?: AuthContext
-        }
+declare global {
+  namespace Express {
+    interface Request {
+      auth?: AuthContext
     }
+  }
 }

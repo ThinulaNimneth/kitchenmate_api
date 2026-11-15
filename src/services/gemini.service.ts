@@ -17,10 +17,7 @@ export interface GenerateRecipesParams {
   mealType: string
 }
 
-
-
-
-//response
+// revalidate ai output with zod....
 const generatedRecipeSchema = z.object({
   title: z.string().min(1),
   description: z.string().default(""),
@@ -40,9 +37,7 @@ const generatedRecipeSchema = z.object({
   tip: z.string().optional()
 })
 
-
 const responseSchema = z.object({ recipes: z.array(generatedRecipeSchema).min(1) })
-
 
 export type GeneratedRecipe = z.infer<typeof generatedRecipeSchema>
 
@@ -83,13 +78,10 @@ Respond with JSON ONLY, no markdown, in exactly this shape:
 }`
 }
 
-
 interface GeminiResponse {
   candidates?: { content?: { parts?: { text?: string }[] } }[]
   promptFeedback?: { blockReason?: string }
 }
-
-
 
 const callModel = async (model: string, prompt: string): Promise<{ status: number; body: GeminiResponse | null }> => {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`
@@ -109,14 +101,14 @@ const callModel = async (model: string, prompt: string): Promise<{ status: numbe
 }
 
 const extractJson = (text: string): unknown => {
-  // models sometimes wrap JSON in ```json fences even when asked not to
+  //ai strip json fence
   const cleaned = text.replace(/```json|```/gi, "").trim()
   return JSON.parse(cleaned)
 }
 
 export const generateRecipes = async (params: GenerateRecipesParams): Promise<GeneratedRecipe[]> => {
   if (!env.GEMINI_API_KEY) {
-    throw new AppError(503, "AI recipe generator is not configured (missing GEMINI_API_KEY)..!")
+    throw new AppError(503, "AI recipe generator is not configured api key miss..!")
   }
 
   const prompt = buildPrompt(params)
@@ -132,34 +124,32 @@ export const generateRecipes = async (params: GenerateRecipesParams): Promise<Ge
     } catch (err) {
       console.error(`Gemini request failed (${model}):`, err)
       lastStatus = 504
-      continue //mdel err
+      continue //network err
     }
 
     lastStatus = result.status
     if (result.status === 429) {
-      throw new AppError(429, "ai API quota reached. Please try again later..!")
+      throw new AppError(429, "Ai API quota reached. Please try again later..!")
     }
     if (result.status === 400 || result.status === 401 || result.status === 403) {
-      throw new AppError(502, "ai rejected the request. Check GEMINI_API_KEY and GEMINI_MODEL..!")
+      throw new AppError(502, "Ai rejected the request. Check AI_API_KEY and Ai_MODEL..!")
     }
     if (result.status !== 200 || !result.body) {
-      continue //back retry
+      continue //fallback
     }
-
-
 
     const text = result.body.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? ""
     if (!text) {
-      throw new AppError(502, "ai returned an empty answer. Please try again..!")
+      throw new AppError(502, "Ai returned an empty answer. Please try again..!")
     }
 
     try {
       return responseSchema.parse(extractJson(text)).recipes
     } catch (err) {
-      console.error("Could not parse ai output:", err, text.slice(0, 500))
-      throw new AppError(502, "ai returned an unexpected format. Please try again..!")
+      console.error("Could not parse Gemini output:", err, text.slice(0, 500))
+      throw new AppError(502, "Gemini returned an unexpected format. Please try again..!")
     }
   }
 
-  throw new AppError(502, `ai is currently unavailable (status ${lastStatus}). Please try again later..!`)
+  throw new AppError(502, `Gemini is currently unavailable (status ${lastStatus}). Please try again later..!`)
 }

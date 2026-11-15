@@ -8,12 +8,9 @@ import { AppError } from "../utils/AppError"
 import { getIdParam, getUserId } from "../utils/params"
 import { sendSuccess } from "../utils/response"
 
-
 const isAdmin = (req: Request) => !!req.auth?.roles.includes(UserRole.ADMIN)
 
-
-
-//globle , personle categories
+//categories list
 export const listCategories = async (req: Request, res: Response) => {
   const userId = new Types.ObjectId(getUserId(req))
 
@@ -21,7 +18,7 @@ export const listCategories = async (req: Request, res: Response) => {
     .sort({ name: 1 })
     .lean()
 
-  //active items by category
+  //category usage count
   const counts = await PantryItemModel.aggregate<{ _id: Types.ObjectId; count: number }>([
     { $match: { user: userId, status: "ACTIVE" } },
     { $group: { _id: "$category", count: { $sum: 1 } } }
@@ -32,15 +29,13 @@ export const listCategories = async (req: Request, res: Response) => {
   return sendSuccess(res, data)
 }
 
-
-
-// add category
+//cat create
 export const createCategory = async (req: Request, res: Response) => {
   const { name, icon, color, isGlobal } = req.body
   const userId = getUserId(req)
 
   if (isGlobal && !isAdmin(req)) {
-    throw new AppError(403, "admins only can create global categories..")
+    throw new AppError(403, "Only admins can create global categories.")
   }
 
   const category = await CategoryModel.create({
@@ -49,12 +44,10 @@ export const createCategory = async (req: Request, res: Response) => {
     color,
     owner: isGlobal ? null : new Types.ObjectId(userId)
   })
-  return sendSuccess(res, category, "Category created..", 201)
+  return sendSuccess(res, category, "Category created.", 201)
 }
 
-
-
-//loard to edit
+//load edit category
 const findEditableCategory = async (req: Request) => {
   const id = getIdParam(req)
   const category = await CategoryModel.findById(id)
@@ -63,25 +56,20 @@ const findEditableCategory = async (req: Request) => {
   if (category.owner === null) {
     if (!isAdmin(req)) throw new AppError(403, "Only admins can modify global categories..")
   } else if (category.owner.toString() !== getUserId(req)) {
-    throw new AppError(404, "Category not found..!") 
+    throw new AppError(404, "Category not found..")
   }
   return category
 }
 
-
-
-//update category
+//update
 export const updateCategory = async (req: Request, res: Response) => {
   const category = await findEditableCategory(req)
   Object.assign(category, req.body)
   await category.save()
-  return sendSuccess(res, category, "Category updated..")
+  return sendSuccess(res, category, "Category updated.")
 }
 
-
-
-
-//delete category
+//delete
 export const deleteCategory = async (req: Request, res: Response) => {
   const category = await findEditableCategory(req)
 
@@ -90,7 +78,7 @@ export const deleteCategory = async (req: Request, res: Response) => {
     throw new AppError(409, `Cannot delete: ${inUse} pantry item(s) still use this category..!`)
   }
 
-  // Clear 
+  //itm clear
   await ShoppingListModel.updateMany(
     { "items.category": category._id },
     { $set: { "items.$[el].category": null } },
@@ -98,5 +86,5 @@ export const deleteCategory = async (req: Request, res: Response) => {
   )
 
   await category.deleteOne()
-  return sendSuccess(res, null, "Category deleted..!")
+  return sendSuccess(res, null, "Category deleted.")
 }

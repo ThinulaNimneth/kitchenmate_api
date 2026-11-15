@@ -11,27 +11,21 @@ import { sendSuccess } from "../utils/response"
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-
-
-//analysis
+//dashbord analy
 export const getStats = async (req: Request, res: Response) => {
   const userId = new Types.ObjectId(getUserId(req))
   const today = startOfToday()
   const soonEnd = addDays(today, env.EXPIRING_SOON_DAYS)
   const active = { user: userId, status: ItemStatus.ACTIVE }
 
-
-
-  //6 mon set range
+  //six month last
   const windowStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 5, 1))
-
 
   const [expired, expiring, fresh, byCategory, monthlyRaw, expiringSoon, openLists, savedRecipes] =
     await Promise.all([
       PantryItemModel.countDocuments({ ...active, expirationDate: { $lt: today } }),
       PantryItemModel.countDocuments({ ...active, expirationDate: { $gte: today, $lte: soonEnd } }),
       PantryItemModel.countDocuments({ ...active, expirationDate: { $gt: soonEnd } }),
-
 
       PantryItemModel.aggregate<{ name: string; icon: string; color: string; count: number }>([
         { $match: active },
@@ -43,7 +37,6 @@ export const getStats = async (req: Request, res: Response) => {
         { $project: { _id: 0, name: "$cat.name", icon: "$cat.icon", color: "$cat.color", count: 1 } },
         { $sort: { count: -1 } }
       ]),
-
 
       PantryItemModel.aggregate<{ _id: { y: number; m: number; status: string }; count: number }>([
         {
@@ -71,9 +64,7 @@ export const getStats = async (req: Request, res: Response) => {
       RecipeModel.countDocuments({ user: userId })
     ])
 
-
-
-  //continue 6month rnge
+  // zero to fil miss months
   const monthly = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - (5 - i), 1))
     const y = d.getUTCFullYear()
@@ -83,12 +74,9 @@ export const getStats = async (req: Request, res: Response) => {
     return { month: `${MONTHS[m - 1]}`, year: y, consumed: find(ItemStatus.CONSUMED), wasted: find(ItemStatus.WASTED) }
   })
 
-
-
   const totalConsumed = monthly.reduce((sum, m) => sum + m.consumed, 0)
   const totalWasted = monthly.reduce((sum, m) => sum + m.wasted, 0)
   const handled = totalConsumed + totalWasted
-
 
   return sendSuccess(res, {
     totals: { active: expired + expiring + fresh, fresh, expiring, expired },
@@ -97,10 +85,9 @@ export const getStats = async (req: Request, res: Response) => {
     wasteSummary: {
       consumed: totalConsumed,
       wasted: totalWasted,
-      //consumed rate
+      //used and wate...
       savedRate: handled === 0 ? null : Math.round((totalConsumed / handled) * 100)
     },
-    
     expiringSoon: expiringSoon.map(withFreshness),
     openShoppingLists: openLists,
     savedRecipes

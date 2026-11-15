@@ -2,11 +2,9 @@ import { env } from "../config/env"
 
 export type Freshness = "fresh" | "expiring" | "expired"
 
-
 const DAY_MS = 24 * 60 * 60 * 1000
 
-
-//utc midnight of today
+//exp date
 export const startOfToday = (now = new Date()): Date =>
   new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
 
@@ -22,10 +20,7 @@ export const getFreshness = (expirationDate: Date, now = new Date()): Freshness 
   return "fresh"
 }
 
-
-
-
-//ui fiel
+//ui help field
 export const withFreshness = <T extends { expirationDate: Date }>(item: T) => ({
   ...item,
   freshness: getFreshness(item.expirationDate),

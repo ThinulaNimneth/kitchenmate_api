@@ -1,6 +1,5 @@
 import { Document, model, Schema, Types } from "mongoose"
 
-
 export interface ICategory extends Document {
   name: string
   icon: string
@@ -10,7 +9,6 @@ export interface ICategory extends Document {
   createdAt: Date
   updatedAt: Date
 }
-
 
 const categorySchema = new Schema<ICategory>(
   {
@@ -26,12 +24,10 @@ const categorySchema = new Schema<ICategory>(
   { timestamps: true }
 )
 
-//unique name owner
-
+//owner name unique
 categorySchema.index(
   { owner: 1, name: 1 },
   { unique: true, collation: { locale: "en", strength: 2 } }
 )
-
 
 export const CategoryModel = model<ICategory>("Category", categorySchema)

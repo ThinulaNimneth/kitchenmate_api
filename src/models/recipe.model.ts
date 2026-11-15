@@ -5,8 +5,6 @@ export interface IRecipeIngredient {
   quantity: string
 }
 
-
-
 export interface IRecipe extends Document {
   user: Types.ObjectId
   title: string
@@ -21,9 +19,6 @@ export interface IRecipe extends Document {
   createdAt: Date
   updatedAt: Date
 }
-
-
-
 
 const recipeSchema = new Schema<IRecipe>(
   {
@@ -49,9 +44,5 @@ const recipeSchema = new Schema<IRecipe>(
   },
   { timestamps: true }
 )
-
-
-
-
 
 export const RecipeModel = model<IRecipe>("Recipe", recipeSchema)

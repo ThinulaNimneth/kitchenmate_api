@@ -1,11 +1,11 @@
+
+
 import bcrypt from "bcryptjs"
 import mongoose from "mongoose"
 import { connectDB } from "../config/db"
 import { env } from "../config/env"
 import { CategoryModel } from "../models/category.model"
 import { UserModel, UserRole } from "../models/user.model"
-
-
 
 
 const GLOBAL_CATEGORIES = [
@@ -20,14 +20,13 @@ const GLOBAL_CATEGORIES = [
   { name: "Other", icon: "🍽️", color: "#64748b" }
 ]
 
-
+//use 10 salt round
 const hash = (plain: string) => bcrypt.hashSync(plain, bcrypt.genSaltSync(10))
 
 const run = async () => {
   await connectDB()
 
-
-  //admin
+  //admin create
   await UserModel.findOneAndUpdate(
     { email: env.SEED_ADMIN_EMAIL },
     {
@@ -41,34 +40,18 @@ const run = async () => {
     { upsert: true }
   )
 
-
-
-  //user
-  const demoEmail = "demo@kitchenmate.com"
-  const demoExists = await UserModel.exists({ email: demoEmail })
-  if (!demoExists) {
-    await UserModel.create({
-      name: "Demo User",
-      email: demoEmail,
-      password: hash("Demo@12345"),
-      roles: [UserRole.USER]
-    })
-  }
-
-
-
-  //categories
+  //all user standard category
   for (const c of GLOBAL_CATEGORIES) {
     await CategoryModel.updateOne(
       { name: c.name, owner: null },
       { $setOnInsert: { ...c, owner: null } },
-      { upsert: true }
+      { upsert: true, collation: { locale: "en", strength: 2 } }
     )
   }
 
   console.log("Seed complete..!")
-  console.log(`  Admin : ${env.SEED_ADMIN_EMAIL} / ${env.SEED_ADMIN_PASSWORD}`)
-  console.log(`  Demo  : ${demoEmail} / Demo@12345`)
+  console.log(`  Admin email : ${env.SEED_ADMIN_EMAIL}`)
+  console.log("  Admin password: the value of SEED_ADMIN_PASSWORD in your .env")
 }
 
 run()

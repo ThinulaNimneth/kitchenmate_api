@@ -21,8 +21,6 @@ import {
   updateListSchema
 } from "../validators/shoppingList.validator"
 
-
-
 const router = Router()
 router.use(authenticate)
 
@@ -38,8 +36,5 @@ router.delete("/:id/items/:itemId", deleteItem)
 
 router.delete("/:id/checked", clearChecked)
 router.post("/:id/move-to-pantry", validateBody(moveToPantrySchema), moveToPantry)
-
-
-
 
 export default router

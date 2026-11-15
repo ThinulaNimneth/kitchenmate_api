@@ -1,7 +1,6 @@
 import { Document, model, Schema, Types } from "mongoose"
 import { UNITS } from "./pantryItem.model"
 
-
 export interface IShoppingItem {
   name: string
   quantity: number
@@ -9,7 +8,6 @@ export interface IShoppingItem {
   checked: boolean
   category?: Types.ObjectId | null
 }
-
 
 export interface IShoppingList extends Document {
   user: Types.ObjectId
@@ -20,7 +18,6 @@ export interface IShoppingList extends Document {
   updatedAt: Date
 }
 
-
 const shoppingItemSchema = new Schema<IShoppingItem>({
   name: { type: String, required: true, trim: true, minlength: 1, maxlength: 100 },
   quantity: { type: Number, default: 1, min: 0 },
@@ -28,9 +25,6 @@ const shoppingItemSchema = new Schema<IShoppingItem>({
   checked: { type: Boolean, default: false },
   category: { type: Schema.Types.ObjectId, ref: "Category", default: null }
 })
-
-
-
 
 const shoppingListSchema = new Schema<IShoppingList>(
   {
@@ -41,8 +35,5 @@ const shoppingListSchema = new Schema<IShoppingList>(
   },
   { timestamps: true }
 )
-
-
-
 
 export const ShoppingListModel = model<IShoppingList>("ShoppingList", shoppingListSchema)

@@ -1,21 +1,16 @@
 import { z } from "zod"
 import { UNITS } from "../models/pantryItem.model"
 
-
-
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id")
-
 
 export const createListSchema = z.object({
   name: z.string().trim().min(2).max(80)
 })
 
-
 export const updateListSchema = z.object({
   name: z.string().trim().min(2).max(80).optional(),
   isArchived: z.boolean().optional()
 })
-
 
 export const addListItemSchema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -23,8 +18,6 @@ export const addListItemSchema = z.object({
   unit: z.enum(UNITS).default("pcs"),
   category: objectId.nullable().optional()
 })
-
-
 
 export const updateListItemSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
@@ -34,9 +27,7 @@ export const updateListItemSchema = z.object({
   category: objectId.nullable().optional()
 })
 
-
-
-//check itm move to pantry
+//checked itm to pantry
 export const moveToPantrySchema = z.object({
   items: z
     .array(

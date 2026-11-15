@@ -7,8 +7,7 @@ import { adminUpdateUserSchema } from "../validators/user.validator"
 
 const router = Router()
 
-
-//admin only
+//admin acss
 router.use(authenticate, authorize(UserRole.ADMIN))
 
 router.get("/", listUsers)

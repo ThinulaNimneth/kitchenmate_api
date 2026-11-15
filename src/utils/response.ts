@@ -1,5 +1,6 @@
 import { Response } from "express"
 
+//succ response all
 export const sendSuccess = <T>(
   res: Response,
   data: T,

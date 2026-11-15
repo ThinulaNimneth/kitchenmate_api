@@ -6,8 +6,7 @@ export const createCategorySchema = z.object({
   name: z.string().trim().min(2).max(40),
   icon: z.string().trim().max(8).optional(),
   color: hexColor.optional(),
-  
-  // admin chek controll
+  //only admin
   isGlobal: z.boolean().optional()
 })
 

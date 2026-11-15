@@ -9,8 +9,7 @@ import { AppError } from "../utils/AppError"
 import { escapeRegex, getIdParam, getUserId } from "../utils/params"
 import { sendSuccess } from "../utils/response"
 
-
-//user list
+//admin user list..
 export const listUsers = async (req: Request, res: Response) => {
   const page = Math.max(1, Number(req.query.page) || 1)
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20))
@@ -34,9 +33,7 @@ export const listUsers = async (req: Request, res: Response) => {
     UserModel.countDocuments(filter)
   ])
 
-
-
-  //pantry itm user
+  //user pantry tot.
   const counts = await PantryItemModel.aggregate<{ _id: Types.ObjectId; count: number }>([
     { $match: { user: { $in: users.map((u) => u._id) } } },
     { $group: { _id: "$user", count: { $sum: 1 } } }
@@ -56,20 +53,17 @@ export const listUsers = async (req: Request, res: Response) => {
   return sendSuccess(res, data, "OK", 200, { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) })
 }
 
-
-
-//user rolde update
+//user rol update dev today here. ....
 export const updateUser = async (req: Request, res: Response) => {
   const id = getIdParam(req)
   if (id === getUserId(req)) {
-    throw new AppError(400, "You cannot change your own role or status..!")
+    throw new AppError(400, "You cannot change your own role or status.")
   }
-
 
   const user = await UserModel.findByIdAndUpdate(id, req.body, { new: true, runValidators: true })
   if (!user) throw new AppError(404, "User not found..!")
 
-  // deactivation revokes refresh tokens
+
   if (req.body.isActive === false) {
     await UserModel.findByIdAndUpdate(id, { $unset: { refreshTokenHash: 1 } })
   }
@@ -81,15 +75,15 @@ export const updateUser = async (req: Request, res: Response) => {
   )
 }
 
-//user remove
+//user delete
 export const deleteUser = async (req: Request, res: Response) => {
   const id = getIdParam(req)
-  if (id === getUserId(req)) throw new AppError(400, "You cannot delete your own account..!")
+  if (id === getUserId(req)) throw new AppError(400, "You cannot delete your own account..")
 
   const user = await UserModel.findById(id)
   if (!user) throw new AppError(404, "User not found..!")
   if (user.roles.includes(UserRole.ADMIN)) {
-    throw new AppError(400, "Demote the admin to USER before deleting the account..!")
+    throw new AppError(400, "Demote the admin to USER before deleting the account")
   }
 
   await Promise.all([
@@ -100,5 +94,5 @@ export const deleteUser = async (req: Request, res: Response) => {
   ])
   await user.deleteOne()
 
-  return sendSuccess(res, null, "User and all related data deleted..!")
+  return sendSuccess(res, null, "User and all related data deleted.")
 }

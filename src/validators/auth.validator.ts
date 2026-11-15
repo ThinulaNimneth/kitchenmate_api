@@ -2,13 +2,13 @@ import { z } from "zod"
 
 const password = z
   .string()
-  .min(4, "password must least 4 characters")
+  .min(8, "Password must be at least 8 characters")
   .max(64)
-  .regex(/[A-Za-z]/, " must contain a letter")
-  .regex(/[0-9]/, "must contain a number")
+  .regex(/[A-Za-z]/, "Password must contain a letter")
+  .regex(/[0-9]/, "Password must contain a number")
 
 export const registerSchema = z.object({
-  name: z.string().trim().min(2, "name  at least 2 characters").max(30),
+  name: z.string().trim().min(2, "Name must be at least 2 characters").max(60),
   email: z.string().trim().toLowerCase().email("Invalid email address"),
   password
 })

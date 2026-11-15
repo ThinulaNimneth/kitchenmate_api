@@ -11,10 +11,7 @@ import { pantryQuerySchema } from "../validators/pantry.validator"
 
 const CATEGORY_FIELDS = "name icon color"
 
-
-
-//get item
-
+//itms filter
 export const listItems = async (req: Request, res: Response) => {
   const q = pantryQuerySchema.parse(req.query)
   const userId = new Types.ObjectId(getUserId(req))
@@ -23,7 +20,7 @@ export const listItems = async (req: Request, res: Response) => {
   if (q.category) filter.category = new Types.ObjectId(q.category)
   if (q.search) filter.name = { $regex: escapeRegex(q.search), $options: "i" }
 
-  //filter fresh state
+  //new and expire date filter
   const today = startOfToday()
   const soonEnd = addDays(today, env.EXPIRING_SOON_DAYS)
   if (q.freshness === "expired") filter.expirationDate = { $lt: today }
@@ -49,9 +46,7 @@ export const listItems = async (req: Request, res: Response) => {
   })
 }
 
-
-
-//expire item
+//expires 
 export const listExpiring = async (req: Request, res: Response) => {
   const days = Math.min(30, Math.max(1, Number(req.query.days) || env.EXPIRING_SOON_DAYS))
   const includeExpired = req.query.includeExpired === "true"
@@ -73,32 +68,26 @@ export const listExpiring = async (req: Request, res: Response) => {
 
 
 
-
-//item detail get
 export const getItem = async (req: Request, res: Response) => {
   const item = await PantryItemModel.findOne({ _id: getIdParam(req), user: getUserId(req) })
     .populate("category", CATEGORY_FIELDS)
     .lean()
-  if (!item) throw new AppError(404, "Pantry item not found.")
+  if (!item) throw new AppError(404, "Pantry item not found..!")
   return sendSuccess(res, withFreshness(item))
 }
 
-
-
-//create item
+//create
 export const createItem = async (req: Request, res: Response) => {
   const userId = getUserId(req)
   await assertCategoryAccessible(req.body.category, userId)
 
   const created = await PantryItemModel.create({ ...req.body, user: userId })
   const item = await PantryItemModel.findById(created._id).populate("category", CATEGORY_FIELDS).lean()
-  return sendSuccess(res, withFreshness(item!), "Item added to pantry..", 201)
+  return sendSuccess(res, withFreshness(item!), "Item added to pantry..!", 201)
 }
 
 
-
-
-//update item
+//update
 export const updateItem = async (req: Request, res: Response) => {
   const userId = getUserId(req)
   if (req.body.category) await assertCategoryAccessible(req.body.category, userId)
@@ -110,14 +99,11 @@ export const updateItem = async (req: Request, res: Response) => {
   )
     .populate("category", CATEGORY_FIELDS)
     .lean()
-  if (!item) throw new AppError(404, "Pantry item not found.")
-  return sendSuccess(res, withFreshness(item), "Item updated..")
+  if (!item) throw new AppError(404, "Pantry item not found..!")
+  return sendSuccess(res, withFreshness(item), "Item updated..!")
 }
 
-
-
-
-//status updating
+//stats
 export const updateStatus = async (req: Request, res: Response) => {
   const status: ItemStatus = req.body.status
   const update =
@@ -132,25 +118,19 @@ export const updateStatus = async (req: Request, res: Response) => {
   )
     .populate("category", CATEGORY_FIELDS)
     .lean()
-  if (!item) throw new AppError(404, "Pantry item not found..")
+  if (!item) throw new AppError(404, "Pantry item not found..!")
 
   const labels: Record<ItemStatus, string> = {
-    [ItemStatus.ACTIVE]: "Item restored to pantry.",
-    [ItemStatus.CONSUMED]: "Marked as used nice, no waste",
-    [ItemStatus.WASTED]: "Marked as wasted"
+    [ItemStatus.ACTIVE]: "Item restored to pantry..!",
+    [ItemStatus.CONSUMED]: "Marked as used - nice, no waste!",
+    [ItemStatus.WASTED]: "Marked as wasted..!"
   }
   return sendSuccess(res, withFreshness(item), labels[status])
 }
 
-
-
-
-
-
-//delete
-
+//delete..
 export const deleteItem = async (req: Request, res: Response) => {
   const item = await PantryItemModel.findOneAndDelete({ _id: getIdParam(req), user: getUserId(req) })
-  if (!item) throw new AppError(404, "Pantry item not found.")
-  return sendSuccess(res, null, "Item deleted")
+  if (!item) throw new AppError(404, "Pantry item not found..!")
+  return sendSuccess(res, null, "Item deleted..!")
 }
